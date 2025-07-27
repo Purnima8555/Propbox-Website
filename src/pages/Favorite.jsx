@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Book, Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
 
@@ -32,6 +33,7 @@ const FavoritesPage = () => {
 
         const formattedFavorites = response.data.map(fav => ({
           id: fav._id,
+          prop_id: fav.prop_id._id,
           name: fav.prop_id.name,
           category: fav.prop_id.category,
           purchase_price: fav.prop_id.purchase_price,
@@ -62,7 +64,7 @@ const FavoritesPage = () => {
     const token = localStorage.getItem('token');
     
     if (!token) {
-      alert('Please log in to remove favorites');
+      toast.error('Please log in to remove favorites');
       return;
     }
 
@@ -77,9 +79,44 @@ const FavoritesPage = () => {
       );
 
       setFavorites(favorites.filter((prop) => prop.id !== id));
+      toast.success('Removed from favorites successfully!');
     } catch (err) {
       console.error('Error removing favorite:', err);
-      alert('Failed to remove favorite. Please try again.');
+      toast.error('Failed to remove favorite. Please try again.');
+    }
+  };
+
+  const addToCart = async (prop_id, type = 'purchase', rentalDays = 1) => {
+    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+
+    if (!userId || !token) {
+      toast.error('Please log in to add to cart');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        'http://localhost:3000/api/cart/add',
+        {
+          user_id: userId,
+          prop_id,
+          quantity: 1,
+          type,
+          rentalDays: type === 'rental' ? rentalDays : undefined,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast.success('Prop added to cart successfully!');
+      console.log('Cart response:', response.data);
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      toast.error('Failed to add to cart. Please try again.');
     }
   };
 
@@ -142,7 +179,10 @@ const FavoritesPage = () => {
 
                   <div className="flex gap-4 mt-4">
                     {prop.isAvailable ? (
-                      <button className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-lg">
+                      <button
+                        onClick={() => addToCart(prop.prop_id, 'purchase')}
+                        className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-lg"
+                      >
                         <ShoppingCart className="w-5 h-5" />
                         Add to Cart
                       </button>

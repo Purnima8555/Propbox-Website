@@ -1,11 +1,12 @@
-import { ArrowLeft, Trash2 } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 import axios from "axios";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router-dom";
 import "../App.css";
 import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
-import { useLocation, useNavigate } from "react-router-dom";
-import { loadStripe } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe("pk_test_51Roge591HJqvjmUhXPywsJe1Yel29BfpPBCmhp37ZkfqI7uPbkv2XDpfuj10KIn3uCtm7skq3RfXUSHrzwu1tZ7g00pEb3800o");
 
@@ -16,13 +17,20 @@ const BuyNow = () => {
   const navigate = useNavigate();
   const buyData = location.state || {};
 
+  const handleContinueShopping = () => {
+    const { prop_id } = buyData;
+    if (prop_id) {
+      navigate(`/props/${prop_id}`);
+    } else {
+      navigate("/");
+    }
+  };
+
   useEffect(() => {
     const fetchPropDetails = async () => {
       const { prop_id, quantity, type, rentalDays } = buyData;
 
-      if (!prop_id) {
-        return;
-      }
+      if (!prop_id) return;
 
       try {
         const response = await axios.get(`http://localhost:3000/api/props/${prop_id}`);
@@ -37,11 +45,12 @@ const BuyNow = () => {
             image: prop.image,
           },
           purchasePrice: prop.purchase_price,
-          rentalPrice: prop.hasDiscount && prop.discount_percent && 
-                       new Date() >= new Date(prop.discount_start) && 
-                       new Date() <= new Date(prop.discount_end)
-                       ? prop.rental_price * (1 - prop.discount_percent / 100)
-                       : prop.rental_price,
+          rentalPrice: prop.hasDiscount &&
+            prop.discount_percent &&
+            new Date() >= new Date(prop.discount_start) &&
+            new Date() <= new Date(prop.discount_end)
+            ? prop.rental_price * (1 - prop.discount_percent / 100)
+            : prop.rental_price,
           quantity: quantity || 1,
           type: type || "purchase",
           rentalDays: type === "rental" ? rentalDays || 7 : undefined,
@@ -56,6 +65,78 @@ const BuyNow = () => {
     fetchPropDetails();
   }, [buyData]);
 
+  const calculateItemPrice = (item) => {
+    if (item.type === "purchase") {
+      return item.purchasePrice;
+    } else {
+      return item.rentalPrice * (item.rentalDays / 7);
+    }
+  };
+
+  const subtotal = cartItems.reduce((sum, item) => sum + calculateItemPrice(item) * item.quantity, 0);
+  const deliveryFee = cartItems.length > 0 ? 100 : 0;
+  const total = subtotal + deliveryFee;
+
+  const handleCheckout = async () => {
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+
+    if (!userId || !token) {
+      toast.error("Please log in to proceed.");
+      return;
+    }
+
+    const orderData = {
+      user_id: userId,
+      items: cartItems.map((item) => ({
+        prop_id: item.prop_id._id,
+        quantity: item.quantity,
+        type: item.type,
+        rentalDays: item.rentalDays || 0,
+      })),
+      deliveryFee,
+      total_price: total,
+      paymentMethod: paymentMethod === "cod" ? "cod" : "online",
+    };
+
+    if (paymentMethod === "online") {
+  try {
+    // Add successUrl for BuyNow payment success page
+    const response = await axios.post(
+      "http://localhost:3000/api/payments/create-checkout-session",
+      {
+        ...orderData,
+        successUrl: `http://localhost:5173/payment-buy?session_id={CHECKOUT_SESSION_ID}`,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const stripe = await stripePromise;
+    await stripe.redirectToCheckout({ sessionId: response.data.sessionId });
+  } catch (err) {
+    console.error("Stripe session error:", err);
+    toast.error("Stripe session creation failed.");
+  }
+}else {
+      try {
+        const response = await axios.post("http://localhost:3000/api/orders", orderData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        toast.success("🎉 COD Order Placed!");
+        navigate("/orders", {
+          state: {
+            orderId: response.data._id,
+            paymentStatus: response.data.paymentStatus,
+          },
+        });
+      } catch (err) {
+        console.error("COD order error:", err);
+        toast.error("COD Order failed.");
+      }
+    }
+  };
+
   useEffect(() => {
     const handleStripeSuccess = async () => {
       const sessionId = new URLSearchParams(window.location.search).get("session_id");
@@ -69,6 +150,17 @@ const BuyNow = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        const paymentIntentId = sessionRes.data.payment_intent;
+
+        const existsRes = await axios.get(`http://localhost:3000/api/orders/check/${paymentIntentId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (existsRes.data.exists) {
+          toast.success("Order already placed.");
+          return;
+        }
+
         const orderData = {
           user_id: userId,
           items: cartItems.map((item) => ({
@@ -77,115 +169,36 @@ const BuyNow = () => {
             type: item.type,
             rentalDays: item.rentalDays || 0,
           })),
-          deliveryFee: cartItems.length > 0 ? 100 : 0,
+          deliveryFee,
           total_price: total,
           paymentMethod: "online",
-          paymentIntent: sessionRes.data.paymentIntentId,
+          paymentIntentId,
+          paymentStatus: "done",
         };
 
         const orderRes = await axios.post("http://localhost:3000/api/orders", orderData, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        await axios.delete(`http://localhost:3000/api/cart/clear/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        toast.success("✅ Stripe Order Placed!");
+        navigate("/orders", {
+          state: {
+            orderId: orderRes.data._id,
+            paymentStatus: orderRes.data.paymentStatus,
+          },
         });
-
-        setCartItems([]);
-        alert("🎉 Order placed successfully after payment!");
-        navigate("/category");
       } catch (err) {
-        console.error("Error placing order after Stripe success:", err);
-        alert("Payment succeeded but order failed. Please contact support.");
+        console.error("Error placing Stripe order:", err);
+        toast.error("Payment done, but order failed.");
       }
     };
 
-    handleStripeSuccess();
-  }, [cartItems]);
-
-  const calculateItemPrice = (item) => {
-    if (item.type === "purchase") {
-      return item.purchasePrice;
-    } else {
-      return item.rentalPrice * (item.rentalDays / 7);
-    }
-  };
+    handleStripeSuccess(); // don't depend on cartItems!
+  }, []);
 
   const removeItem = (id) => {
     setCartItems((items) => items.filter((item) => item._id !== id));
   };
-
-  const handleContinueShopping = () => {
-    const { prop_id } = buyData;
-    if (prop_id) {
-      navigate(`/prop/${prop_id}`);
-    } else {
-      navigate("/");
-    }
-  };
-
-  const handleCheckout = async () => {
-    const userId = localStorage.getItem("userId");
-    const token = localStorage.getItem("token");
-
-    if (!userId || !token) {
-      alert("Please log in to proceed with checkout.");
-      return;
-    }
-
-    const orderData = {
-      user_id: userId,
-      items: cartItems.map((item) => ({
-        prop_id: item.prop_id._id,
-        quantity: item.quantity,
-        type: item.type,
-        rentalDays: item.rentalDays || 0,
-      })),
-      deliveryFee: cartItems.length > 0 ? 100 : 0,
-      total_price: total,
-      paymentMethod: paymentMethod === "cod" ? "cod" : "online",
-    };
-
-    if (paymentMethod === "online") {
-      try {
-        const response = await axios.post(
-          "http://localhost:3000/api/payments/create-checkout-session",
-          orderData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const stripe = await stripePromise;
-        const { error } = await stripe.redirectToCheckout({
-          sessionId: response.data.sessionId,
-        });
-        if (error) {
-          console.error("Stripe redirect error:", error);
-          alert("Failed to redirect to Stripe Checkout.");
-        }
-      } catch (err) {
-        console.error("Stripe session error:", err);
-        alert("Failed to create checkout session.");
-      }
-    } else {
-      try {
-        const response = await axios.post("http://localhost:3000/api/orders", orderData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        await axios.delete(`http://localhost:3000/api/cart/clear/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setCartItems([]);
-        alert(`Order placed successfully!`);
-        navigate("/orders");
-      } catch (error) {
-        console.error("COD order error:", error);
-        alert("Failed to place order.");
-      }
-    }
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + calculateItemPrice(item) * item.quantity, 0);
-  const deliveryFee = cartItems.length > 0 ? 100 : 0;
-  const total = subtotal + deliveryFee;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -218,7 +231,7 @@ const BuyNow = () => {
                   </p>
                   <button
                     onClick={() => navigate("/")}
-                    className="mt-4 bg-black hover:bg-black text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                    className="mt-4 bg-black text-white font-semibold py-2 px-4 rounded-lg"
                   >
                     Shop Now
                   </button>
@@ -227,14 +240,14 @@ const BuyNow = () => {
                 cartItems.map((item) => (
                   <div
                     key={item._id}
-                    className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:border-blue-100 transition-all duration-300"
+                    className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:border-blue-100"
                   >
                     <div className="flex gap-6">
                       <div className="relative group">
                         <img
                           src={`http://localhost:3000/prop_images/${item.prop_id.image}`}
                           alt={item.prop_id.name}
-                          className="w-28 h-40 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
+                          className="w-28 h-40 object-cover rounded-lg shadow-md group-hover:scale-105 transition-transform"
                         />
                       </div>
                       <div className="flex-1 flex gap-4">
@@ -267,9 +280,9 @@ const BuyNow = () => {
                         </div>
                         <button
                           onClick={() => removeItem(item._id)}
-                          className="p-2 hover:bg-red-50 rounded-full transition-colors group self-start"
+                          className="p-2 hover:bg-red-50 rounded-full group self-start"
                         >
-                          <Trash2 className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition-colors" />
+                          <Trash2 className="h-5 w-5 text-gray-400 group-hover:text-red-500" />
                         </button>
                       </div>
                     </div>
@@ -305,7 +318,7 @@ const BuyNow = () => {
                         id="payment-method"
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                        className="w-full p-2 border rounded-lg"
                       >
                         <option value="cod">Cash on Delivery</option>
                         <option value="online">Online Payment</option>
@@ -313,7 +326,7 @@ const BuyNow = () => {
                     </div>
                     <button
                       onClick={handleCheckout}
-                      className="w-full bg-black hover:bg-black text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                      className="w-full bg-black text-white font-semibold py-3 px-4 rounded-lg"
                     >
                       Checkout Now
                     </button>

@@ -24,6 +24,7 @@ import Profile from "./pages/Profile";
 import BestSellersPage from "./pages/BestSeller";
 import BuyNow from "./pages/BuyNow";
 import PaymentSuccess from "./components/PaymentSuccess";
+import PaymentSuccessBuyNow from "./components/PaymentSuccessBuyNow";
 
 const router = createBrowserRouter([
   {
@@ -77,6 +78,10 @@ const router = createBrowserRouter([
   {
     path: "/payment-success",
     element: <PaymentSuccess />,
+  },
+  {
+    path: "/payment-buy",
+    element: <PaymentSuccessBuyNow />,
   },
   {
     path: "/propRequest",

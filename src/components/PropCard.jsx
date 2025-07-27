@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FaHeart } from 'react-icons/fa';
 
-const PropCard = ({ name, rental_price, image, category, altText }) => {
+const PropCard = ({ name, rental_price, image, category, altText, onClick }) => {
   const [isFavorited, setIsFavorited] = useState(false);
 
-  const toggleFavorite = () => {
+  const toggleFavorite = (e) => {
+    e.stopPropagation(); // Prevent click from bubbling to the card
     setIsFavorited(!isFavorited);
   };
 
   return (
-    <div className="relative max-w-[17rem] bg-white rounded-lg shadow-lg overflow-hidden h-[350px] transition-transform duration-200 hover:scale-105">
-      {/* Decreased max-width and added hover scale effect */}
+    <div
+      className="relative max-w-[17rem] bg-white rounded-lg shadow-lg overflow-hidden h-[350px] transition-transform duration-200 hover:scale-105 cursor-pointer"
+      onClick={onClick} // Attach onClick for navigation
+    >
       <div className="relative">
         <img
           src={image ? `http://localhost:3000/prop_images/${image}` : "/default-prop-image.jpg"}
           alt={altText || `${name} image`}
           className="w-full h-64 object-cover rounded-t-lg transition-transform duration-200"
         />
-        {/* Image height unchanged, added transition for smoothness */}
-        
         <button
           className={`absolute top-3 right-3 p-2 rounded-full border-2
             ${isFavorited ? "bg-white border-gray-400" : "bg-black border"}`

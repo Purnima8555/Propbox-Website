@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const Notification = ({ onClose, onUnreadChange }) => {
   const [notifications, setNotifications] = useState([]);
@@ -20,7 +21,7 @@ const Notification = ({ onClose, onUnreadChange }) => {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         });
-        const fetchedNotifications = response.data.notifications;
+        const fetchedNotifications = response.data.notifications || [];
         console.log("Fetched notifications:", fetchedNotifications);
         setNotifications(fetchedNotifications);
 
@@ -35,34 +36,43 @@ const Notification = ({ onClose, onUnreadChange }) => {
     fetchNotifications();
   }, [userId, onUnreadChange]);
 
-  const markAllAsRead = async () => {
+  const markAsRead = async (notificationId) => {
     try {
-      const unreadNotifications = notifications.filter((notification) => !notification.read);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please log in to mark notifications as read');
+        return;
+      }
 
-      const promises = unreadNotifications.map(async (notification) => {
-        await axios.patch(
-          `http://localhost:3000/api/notifications/${notification._id}/read`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
-      });
+      await axios.patch(
+        `http://localhost:3000/api/notifications/${notificationId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      await Promise.all(promises);
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif._id === notificationId ? { ...notif, read: true } : notif
+        )
+      );
 
-      const updatedNotifications = notifications.map((notif) => ({
-        ...notif,
-        read: true,
-      }));
+      // Update unread count
+      const newUnreadCount = notifications.filter(
+        (notif) => notif._id !== notificationId && !notif.read
+      ).length;
+      if (onUnreadChange) onUnreadChange(newUnreadCount);
 
-      setNotifications(updatedNotifications);
-      if (onUnreadChange) onUnreadChange(0);
+      toast.success('Notification marked as read!');
     } catch (error) {
-      console.error("Error marking notifications as read:", error);
-      setError(error.response?.data?.message || 'Failed to mark notifications as read.');
+      console.error("Error marking notification as read:", error);
+      const errorMessage = error.response?.data?.message || 'Failed to mark notification as read.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -90,7 +100,14 @@ const Notification = ({ onClose, onUnreadChange }) => {
           </li>
         )}
         {notifications.map((note) => (
-          <li key={note._id} className="px-4 py-3 border-b last:border-b-0 flex gap-3">
+          <li
+            key={note._id}
+            className={`px-4 py-3 border-b last:border-b-0 flex gap-3 cursor-pointer hover:bg-gray-100 transition-colors duration-200 ${
+              note.read ? 'opacity-60' : ''
+            }`}
+            onClick={() => !note.read && markAsRead(note._id)}
+            title={note.read ? 'Already read' : 'Click to mark as read'}
+          >
             <div className="pt-1 relative">
               {note.type === 'info' ? (
                 <Info className="w-5 h-5 text-blue-500" />
@@ -115,12 +132,9 @@ const Notification = ({ onClose, onUnreadChange }) => {
         ))}
       </ul>
 
-      <div className="px-4 py-3 border-t flex items-center justify-between text-sm flex-shrink-0">
+      <div className="px-4 py-3 border-t flex items-center justify-end text-sm flex-shrink-0">
         <button className="text-blue-600 hover:underline" onClick={onClose}>
           Close Notification
-        </button>
-        <button className="text-yellow-600 hover:underline" onClick={markAllAsRead}>
-          Mark all as read
         </button>
       </div>
     </div>

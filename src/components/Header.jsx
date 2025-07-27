@@ -1,12 +1,12 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { FaCaretDown, FaHeart, FaSearch, FaBars, FaTimes, FaRegUserCircle } from "react-icons/fa";
+import { Bell } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FaBars, FaCaretDown, FaHeart, FaRegUserCircle, FaSearch, FaTimes } from "react-icons/fa";
 import { FaCircleUser } from "react-icons/fa6";
 import { HiMiniShoppingBag } from "react-icons/hi2";
-import { Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import SearchPopup from "./Search";
 import Notification from "./Notification";
+import SearchPopup from "./Search";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ const Header = () => {
     if (userId && token && role) {
       setIsLoggedIn(true);
       setUserRole(role);
-      fetchUserProfile(userId);
+      fetchUserProfile(userId, token);
       fetchUnreadNotifications(userId, token);
     } else {
       setIsLoggedIn(false);
@@ -46,7 +46,7 @@ const Header = () => {
     }
   }, []);
 
-  const fetchUserProfile = async (userId) => {
+  const fetchUserProfile = async (userId, token) => {
     try {
       console.log(`Fetching user profile for userId: ${userId}`);
       const response = await axios.get(`http://localhost:3000/api/customer/${userId}`, {
@@ -69,8 +69,9 @@ const Header = () => {
         },
       });
       console.log("Notifications response:", response.data);
-      const notifications = response.data.notifications || response.data;
-      const unread = notifications.filter((notif) => !notif.isRead || !notif.read).length;
+      const notifications = response.data.notifications || [];
+      const unread = notifications.filter((notif) => !notif.read).length; // Fixed to use 'read' field
+      console.log("Unread notifications count:", unread);
       setUnreadCount(unread);
     } catch (error) {
       console.error("Error fetching notifications:", error.response?.data || error.message);
