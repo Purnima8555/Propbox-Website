@@ -33,7 +33,7 @@ const BuyNow = () => {
       if (!prop_id) return;
 
       try {
-        const response = await axios.get(`http://localhost:3000/api/props/${prop_id}`);
+        const response = await axios.get(`https://localhost:3000/api/props/${prop_id}`);
         const prop = response.data;
 
         const cartItem = {
@@ -103,10 +103,10 @@ const BuyNow = () => {
   try {
     // Add successUrl for BuyNow payment success page
     const response = await axios.post(
-      "http://localhost:3000/api/payments/create-checkout-session",
+      "https://localhost:3000/api/payments/create-checkout-session",
       {
         ...orderData,
-        successUrl: `http://localhost:5173/payment-buy?session_id={CHECKOUT_SESSION_ID}`,
+        successUrl: `https://localhost:5173/payment-buy?session_id={CHECKOUT_SESSION_ID}`,
       },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -119,12 +119,12 @@ const BuyNow = () => {
   }
 }else {
       try {
-        const response = await axios.post("http://localhost:3000/api/orders", orderData, {
+        const response = await axios.post("https://localhost:3000/api/orders", orderData, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         toast.success("🎉 COD Order Placed!");
-        navigate("/orders", {
+        navigate("/category", {
           state: {
             orderId: response.data._id,
             paymentStatus: response.data.paymentStatus,
@@ -146,13 +146,13 @@ const BuyNow = () => {
       if (!sessionId || !userId || !token || cartItems.length === 0) return;
 
       try {
-        const sessionRes = await axios.get(`http://localhost:3000/api/payments/session/${sessionId}`, {
+        const sessionRes = await axios.get(`https://localhost:3000/api/payments/session/${sessionId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const paymentIntentId = sessionRes.data.payment_intent;
 
-        const existsRes = await axios.get(`http://localhost:3000/api/orders/check/${paymentIntentId}`, {
+        const existsRes = await axios.get(`https://localhost:3000/api/orders/check/${paymentIntentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -176,12 +176,12 @@ const BuyNow = () => {
           paymentStatus: "done",
         };
 
-        const orderRes = await axios.post("http://localhost:3000/api/orders", orderData, {
+        const orderRes = await axios.post("https://localhost:3000/api/orders", orderData, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         toast.success("✅ Stripe Order Placed!");
-        navigate("/orders", {
+        navigate("/category", {
           state: {
             orderId: orderRes.data._id,
             paymentStatus: orderRes.data.paymentStatus,
@@ -193,7 +193,7 @@ const BuyNow = () => {
       }
     };
 
-    handleStripeSuccess(); // don't depend on cartItems!
+    handleStripeSuccess();
   }, []);
 
   const removeItem = (id) => {
@@ -245,7 +245,7 @@ const BuyNow = () => {
                     <div className="flex gap-6">
                       <div className="relative group">
                         <img
-                          src={`http://localhost:3000/prop_images/${item.prop_id.image}`}
+                          src={`https://localhost:3000/prop_images/${item.prop_id.image}`}
                           alt={item.prop_id.name}
                           className="w-28 h-40 object-cover rounded-lg shadow-md group-hover:scale-105 transition-transform"
                         />

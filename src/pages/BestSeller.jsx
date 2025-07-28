@@ -15,7 +15,7 @@ const BestSellersPage = () => {
   useEffect(() => {
     const fetchBestBooks = async () => {
       try {
-        const booksResponse = await axios.get('http://localhost:3000/api/props/best/bestprops');
+        const booksResponse = await axios.get('https://localhost:3000/api/props/best/bestprops');
         setBestBooks(booksResponse.data);
       } catch (error) {
         console.error("Error fetching best books:", error);
@@ -31,7 +31,7 @@ const BestSellersPage = () => {
 
       try {
         const favResponse = await axios.get(
-          `http://localhost:3000/api/favorites/${userId}`,
+          `https://localhost:3000/api/favorites/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -75,7 +75,7 @@ const BestSellersPage = () => {
     try {
       if (isCurrentlyFavorited) {
         const response = await axios.get(
-          `http://localhost:3000/api/favorites/${userId}`,
+          `https://localhost:3000/api/favorites/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -86,7 +86,7 @@ const BestSellersPage = () => {
 
         if (favoriteToRemove) {
           await axios.delete(
-            `http://localhost:3000/api/favorites/${favoriteToRemove._id}`,
+            `https://localhost:3000/api/favorites/${favoriteToRemove._id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -95,7 +95,7 @@ const BestSellersPage = () => {
         }
       } else {
         await axios.post(
-          "http://localhost:3000/api/favorites/",
+          "https://localhost:3000/api/favorites/",
           {
             user_id: userId,
             prop_id: propId,
@@ -173,7 +173,7 @@ const BestSellersPage = () => {
                   />
                 </div>
                 <img
-                  src={`http://localhost:3000/prop_images/${topBook.image}`}
+                  src={`https://localhost:3000/prop_images/${topBook.image}`}
                   alt={topBook.name}
                   className="w-80 h-120 object-cover"
                 />
@@ -235,7 +235,7 @@ const BestSellersPage = () => {
                     />
                   </div>
                   <img
-                    src={`http://localhost:3000/prop_images/${prop.image}`}
+                    src={`https://localhost:3000/prop_images/${prop.image}`}
                     alt={prop.name}
                     className="w-75 h-80 object-cover mx-auto"
                   />

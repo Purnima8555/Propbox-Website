@@ -12,7 +12,7 @@ const Admin = () => {
     const userId = localStorage.getItem("userId");
     if (userId) {
       axios
-        .get(`http://localhost:3000/api/customer/${userId}`, {
+        .get(`https://localhost:3000/api/customer/${userId}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -99,7 +99,7 @@ const Admin = () => {
             />
             {user?.image ? (
               <img
-                src={`http://localhost:3000/profilePicture/${user.image}`}
+                src={`https://localhost:3000/profilePicture/${user.image}`}
                 alt="Admin Avatar"
                 className="w-12 h-12 rounded-full object-cover border-3 border-gray-300 hover:border-gray-500 transition-all"
               />

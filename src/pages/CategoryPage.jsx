@@ -36,7 +36,7 @@ const CategoryPage = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/favorites/${userId}`,
+          `https://localhost:3000/api/favorites/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -71,8 +71,8 @@ const CategoryPage = () => {
         setSelectedCategory(normalizedCategory || null);
 
         let url = normalizedCategory
-          ? `http://localhost:3000/api/props/category/${normalizedCategory}`
-          : "http://localhost:3000/api/props/";
+          ? `https://localhost:3000/api/props/category/${normalizedCategory}`
+          : "https://localhost:3000/api/props/";
         const response = await axios.get(url);
         let filteredProps = response.data;
 
@@ -107,7 +107,7 @@ const CategoryPage = () => {
     try {
       if (isCurrentlyFavorited) {
         const response = await axios.get(
-          `http://localhost:3000/api/favorites/${userId}`,
+          `https://localhost:3000/api/favorites/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -118,7 +118,7 @@ const CategoryPage = () => {
 
         if (favoriteToRemove) {
           await axios.delete(
-            `http://localhost:3000/api/favorites/${favoriteToRemove._id}`,
+            `https://localhost:3000/api/favorites/${favoriteToRemove._id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -127,7 +127,7 @@ const CategoryPage = () => {
         }
       } else {
         await axios.post(
-          "http://localhost:3000/api/favorites/",
+          "https://localhost:3000/api/favorites/",
           {
             user_id: userId,
             prop_id: propId,
@@ -297,7 +297,7 @@ const CategoryPage = () => {
                   <img
                     src={
                       prop.image
-                        ? `http://localhost:3000/prop_images/${prop.image}`
+                        ? `https://localhost:3000/prop_images/${prop.image}`
                         : "/default-prop-image.jpg"
                     }
                     alt={prop.name}

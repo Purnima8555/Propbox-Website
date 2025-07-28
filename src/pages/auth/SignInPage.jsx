@@ -19,23 +19,18 @@ const SignInPage = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/login", {
+      // Call backend login endpoint
+      const response = await axios.post("https://localhost:3000/api/auth/login", {
         username,
         password,
       });
 
-      const { userId, token, role } = response.data;
-      localStorage.setItem("userId", userId);
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
+      // Backend sends OTP via email here
+      
+      toast.success("OTP sent to your email. Please check and enter OTP.");
 
-      toast.success("Logged in successfully!");
-
-      if (role === "Admin") {
-        navigate("/admin/dashboard");
-      } else if (role === "User") {
-        navigate("/");
-      }
+      // Navigate to OTP page and pass username via state or query
+      navigate("/otp", { state: { username } });
     } catch (error) {
       console.error("Login error:", error);
       toast.error("*Invalid username or password!*");

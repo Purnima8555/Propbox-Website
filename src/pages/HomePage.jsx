@@ -16,7 +16,7 @@ const Homepage = () => {
   useEffect(() => {
     const fetchNewProps = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/props/new?limit=5');
+        const response = await axios.get('https://localhost:3000/api/props/new?limit=5');
         setNewProps(response.data.slice(0, 5)); // Ensure max 5 items
         setIsLoading(false);
       } catch (error) {

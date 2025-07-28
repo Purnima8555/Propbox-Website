@@ -23,14 +23,14 @@ const PaymentSuccessBuyNow = () => {
 
       try {
         // Get Stripe session details
-        const sessionRes = await axios.get(`http://localhost:3000/api/payments/session/${sessionId}`, {
+        const sessionRes = await axios.get(`https://localhost:3000/api/payments/session/${sessionId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const { metadata, payment_intent: paymentIntentId } = sessionRes.data;
 
         // Check if order already exists
-        const existsRes = await axios.get(`http://localhost:3000/api/orders/check/${paymentIntentId}`, {
+        const existsRes = await axios.get(`https://localhost:3000/api/orders/check/${paymentIntentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -52,12 +52,12 @@ const PaymentSuccessBuyNow = () => {
         };
 
         // Place order
-        const orderRes = await axios.post("http://localhost:3000/api/orders", orderData, {
+        const orderRes = await axios.post("https://localhost:3000/api/orders", orderData, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         toast.success("Order Placed!");
-        navigate("/orders", {
+        navigate("/category", {
           state: {
             orderId: orderRes.data._id,
             paymentStatus: orderRes.data.paymentStatus,

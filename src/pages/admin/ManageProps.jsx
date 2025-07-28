@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api/props";
+const API_URL = "https://localhost:3000/api/props";
 
 const ManageProps = () => {
   const navigate = useNavigate();

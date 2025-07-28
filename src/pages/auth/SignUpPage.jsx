@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useState } from "react";
-import { FaEnvelope, FaLock, FaUser, FaPhone } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { FaEnvelope, FaLock, FaPhone, FaUser } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header.jsx";
 
 const SignUpPage = () => {
@@ -13,6 +13,7 @@ const SignUpPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [passwordsMatch, setPasswordsMatch] = useState(null);
   const [errorMessages, setErrorMessages] = useState({
     fullname: "",
     username: "",
@@ -24,6 +25,24 @@ const SignUpPage = () => {
     general: "",
   });
   const navigate = useNavigate();
+
+  // Password validation rules
+  const passwordRules = {
+    minLength: { rule: password.length >= 8, message: "At least 8 characters" },
+    uppercase: { rule: /[A-Z]/.test(password), message: "1 uppercase letter" },
+    number: { rule: /\d/.test(password), message: "1 number" },
+    specialChar: { rule: /[!@#$%^&*(),.?":{}|<>]/.test(password), message: "1 special character" },
+  };
+
+  // Check if passwords match in real-time
+  const handleConfirmPasswordChange = (value) => {
+    setConfirmPassword(value);
+    if (value && password) {
+      setPasswordsMatch(value === password);
+    } else {
+      setPasswordsMatch(null);
+    }
+  };
 
   const resetErrorMessages = () => {
     setTimeout(() => {
@@ -60,9 +79,14 @@ const SignUpPage = () => {
       formIsValid = false;
     }
 
-    // Validate password length
-    if (password.length < 8) {
-      errors.password = "*Password must have at least 8 characters!*";
+    // Validate password rules
+    if (
+      password.length < 8 ||
+      !/[A-Z]/.test(password) ||
+      !/\d/.test(password) ||
+      !/[!@#$%^&*(),.?":{}|<>]/.test(password)
+    ) {
+      errors.password = "*Password must fulfill all requirements!*";
       formIsValid = false;
     }
 
@@ -80,7 +104,7 @@ const SignUpPage = () => {
 
     // Check for existing username/email
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/check-user-exists", {
+      const response = await axios.post("https://localhost:3000/api/auth/check-user-exists", {
         username,
         email,
       });
@@ -122,7 +146,7 @@ const SignUpPage = () => {
     };
 
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/register", registerPayload);
+      const response = await axios.post("https://localhost:3000/api/auth/register", registerPayload);
       const { userId, token, role } = response.data.customer;
 
       localStorage.setItem("userId", userId);
@@ -130,7 +154,7 @@ const SignUpPage = () => {
       localStorage.setItem("role", role);
 
       toast.success("Registered successfully!");
-      navigate("/signIn");
+      navigate("/otp");
     } catch (error) {
       console.error("Registration error:", error.response?.data || error);
       const errorMessage = error.response?.data?.message || error.response?.data?.error || "Registration failed!";
@@ -259,7 +283,12 @@ const SignUpPage = () => {
               type="password"
               id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (confirmPassword) {
+                  setPasswordsMatch(e.target.value === confirmPassword);
+                }
+              }}
               placeholder=" "
               className="peer w-full border-b border-gray-400 py-2 pr-10 text-gray-700 focus:outline-none focus:border-black"
             />
@@ -275,6 +304,13 @@ const SignUpPage = () => {
             {errorMessages.password && (
               <div className="text-red-500 text-xs mt-1">{errorMessages.password}</div>
             )}
+            <div className="text-xs mt-2">
+              {Object.entries(passwordRules).map(([key, { rule, message }]) => (
+                <div key={key} className="text-gray-600">
+                  {rule ? "✔ " : "• "} {message}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="relative mb-6">
@@ -282,7 +318,7 @@ const SignUpPage = () => {
               type="password"
               id="confirm-password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => handleConfirmPasswordChange(e.target.value)}
               placeholder=" "
               className="peer w-full border-b border-gray-400 py-2 pr-10 text-gray-700 focus:outline-none focus:border-black"
             />
@@ -297,6 +333,12 @@ const SignUpPage = () => {
             <FaLock className="absolute right-0 top-2 text-black" />
             {errorMessages.confirmPassword && (
               <div className="text-red-500 text-xs mt-1">{errorMessages.confirmPassword}</div>
+            )}
+            {passwordsMatch === true && confirmPassword && (
+              <div className="text-green-500 text-xs mt-1">Passwords match!</div>
+            )}
+            {passwordsMatch === false && confirmPassword && (
+              <div className="text-red-500 text-xs mt-1">Passwords do not match!</div>
             )}
           </div>
 
@@ -326,7 +368,7 @@ const SignUpPage = () => {
 
           <p className="text-center text-sm text-gray-700 mt-6">
             Already have an account?{" "}
-            <a href="/signIn" className="font-semibold underline text-black">
+            <a href="/otp" className="font-semibold underline text-black">
               SIGN IN
             </a>
           </p>

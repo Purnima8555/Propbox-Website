@@ -33,7 +33,7 @@ const CartPage = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:3000/api/cart/${userId}`, {
+        const response = await axios.get(`https://localhost:3000/api/cart/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCartItems(response.data || []);
@@ -75,7 +75,7 @@ const CartPage = () => {
   const updateCartItem = async (id, updates) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.patch(`http://localhost:3000/api/cart/update/${id}`, updates, {
+      const response = await axios.patch(`https://localhost:3000/api/cart/update/${id}`, updates, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCartItems((items) =>
@@ -90,7 +90,7 @@ const CartPage = () => {
   const removeItem = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:3000/api/cart/remove/${id}`, {
+      await axios.delete(`https://localhost:3000/api/cart/remove/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCartItems((items) => items.filter((item) => item._id !== id));
@@ -125,7 +125,7 @@ const CartPage = () => {
     if (paymentMethod === "online") {
       try {
         const response = await axios.post(
-          "http://localhost:3000/api/payments/create-checkout-session",
+          "https://localhost:3000/api/payments/create-checkout-session",
           orderData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -143,10 +143,10 @@ const CartPage = () => {
       }
     } else {
       try {
-        const response = await axios.post("http://localhost:3000/api/orders", orderData, {
+        const response = await axios.post("https://localhost:3000/api/orders", orderData, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        await axios.delete(`http://localhost:3000/api/cart/clear/${userId}`, {
+        await axios.delete(`https://localhost:3000/api/cart/clear/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCartItems([]);
@@ -210,7 +210,7 @@ const CartPage = () => {
                         <img
                           src={
                             item.prop_id.image
-                              ? `http://localhost:3000/prop_images/${item.prop_id.image}`
+                              ? `https://localhost:3000/prop_images/${item.prop_id.image}`
                               : "/default-prop-cover.jpg"
                           }
                           alt={item.prop_id.name}

@@ -23,7 +23,7 @@ const FavoritesPage = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/favorites/${userId}`,
+          `https://localhost:3000/api/favorites/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -39,7 +39,7 @@ const FavoritesPage = () => {
           purchase_price: fav.prop_id.purchase_price,
           rental_price: fav.prop_id.rental_price,
           available_stock: fav.prop_id.available_stock,
-          cover: fav.prop_id.image ? `http://localhost:3000/prop_images/${fav.prop_id.image}` : '/default-prop-cover.jpg',
+          cover: fav.prop_id.image ? `https://localhost:3000/prop_images/${fav.prop_id.image}` : '/default-prop-cover.jpg',
           isAvailable: fav.prop_id.availability_status === 'yes',
         }));
 
@@ -70,7 +70,7 @@ const FavoritesPage = () => {
 
     try {
       await axios.delete(
-        `http://localhost:3000/api/favorites/${id}`,
+        `https://localhost:3000/api/favorites/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -97,7 +97,7 @@ const FavoritesPage = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:3000/api/cart/add',
+        'https://localhost:3000/api/cart/add',
         {
           user_id: userId,
           prop_id,

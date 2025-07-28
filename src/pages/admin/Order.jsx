@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
 import { FaRegIdCard, FaTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -19,19 +19,22 @@ const Orders = () => {
       if (!token) {
         setError("Please log in to view orders.");
         setLoading(false);
-        navigate('/login');
+        navigate('/otp');
         return;
       }
 
       try {
-        const response = await axios.get("http://localhost:3000/api/orders/", {
+        const response = await axios.get("https://localhost:3000/api/orders/", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setOrders(response.data || []);
       } catch (err) {
         console.error("Error fetching orders:", err);
         setError(err.response?.data?.message || "Error fetching orders");
-        if (err.response?.status === 403) {
+        if (err.response?.status === 401) {
+          console.error("Unauthorized access. Redirecting to login.");
+          navigate('/otp');
+        } else if (err.response?.status === 403) {
           navigate('/');
         }
       } finally {
@@ -53,8 +56,32 @@ const Orders = () => {
     }
   };
 
-  const handleDeleteOrder = (orderId) => {
-    console.log("Delete order:", orderId);
+  const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to delete this order?")) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Please log in to delete orders.");
+      navigate('/otp');
+      return;
+    }
+
+    try {
+      await axios.delete(`https://localhost:3000/api/orders/${orderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setOrders(orders.filter(order => order.id !== orderId));
+      alert("Order deleted successfully!");
+    } catch (err) {
+      console.error("Error deleting order:", err);
+      alert(err.response?.data?.message || "Failed to delete order.");
+      if (err.response?.status === 401) {
+        console.error("Unauthorized access. Redirecting to login.");
+        navigate('/otp');
+      }
+    }
   };
 
   const handleStatusChange = (e) => {
@@ -65,19 +92,19 @@ const Orders = () => {
     const token = localStorage.getItem('token');
     if (!token) {
       alert("Please log in to update order status.");
+      navigate('/otp');
       return;
     }
 
     try {
-      const response = await axios.put(
-        `http://localhost:3000/api/orders/${selectedOrder.id}`,
+      const response = await axios.patch(
+        `https://localhost:3000/api/orders/status/${selectedOrder.id}`,
         { status: updatedStatus },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      // Update the orders state with the new status
-      setOrders(orders.map(order => 
+      setOrders(orders.map(order =>
         order.id === selectedOrder.id ? { ...order, status: updatedStatus } : order
       ));
       setSelectedOrder({ ...selectedOrder, status: updatedStatus });
@@ -85,7 +112,15 @@ const Orders = () => {
     } catch (err) {
       console.error("Error updating order status:", err);
       alert(err.response?.data?.message || "Failed to update order status.");
+      if (err.response?.status === 401) {
+        console.error("Unauthorized access. Redirecting to login.");
+        navigate('/otp');
+      }
     }
+  };
+
+  const handleAddOrder = () => {
+    navigate('/admin/orders/add');
   };
 
   const closeForm = () => {
@@ -168,13 +203,6 @@ const Orders = () => {
         </table>
       </div>
 
-      {/* Add Order Button */}
-      <div className="mt-6 flex justify-end">
-        <button className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700">
-          Add New Order
-        </button>
-      </div>
-
       {/* View Order Form */}
       {showForm && selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -196,7 +224,7 @@ const Orders = () => {
             {/* Items */}
             <div className="mb-4">
               <label className="font-semibold">Items:</label>
-              <p>{selectedOrder.items.map(item => item.book_id.title).join(", ") || "No items"}</p>
+              <p>{selectedOrder.items.map(item => item.prop_id?.name || "Unknown Prop").join(", ") || "No items"}</p>
             </div>
 
             {/* Grid Layout for Specific Fields */}

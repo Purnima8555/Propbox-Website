@@ -95,7 +95,7 @@ const PropForm = () => {
         throw new Error('No authentication token found. Please log in.');
       }
 
-      const response = await axios.post('http://localhost:3000/api/props/add', formDataToSend, {
+      const response = await axios.post('https://localhost:3000/api/props/add', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`

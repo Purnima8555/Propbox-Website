@@ -49,7 +49,7 @@ const Header = () => {
   const fetchUserProfile = async (userId, token) => {
     try {
       console.log(`Fetching user profile for userId: ${userId}`);
-      const response = await axios.get(`http://localhost:3000/api/customer/${userId}`, {
+      const response = await axios.get(`https://localhost:3000/api/customer/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("User profile response:", response.data);
@@ -63,7 +63,7 @@ const Header = () => {
   const fetchUnreadNotifications = async (userId, token) => {
     try {
       console.log(`Fetching notifications for userId: ${userId}`);
-      const response = await axios.get(`http://localhost:3000/api/notifications/user/${userId}`, {
+      const response = await axios.get(`https://localhost:3000/api/notifications/user/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,7 +80,7 @@ const Header = () => {
   };
 
   const handleSignInClick = () => {
-    navigate(isLoggedIn ? "/profile" : "/signIn");
+    navigate(isLoggedIn ? "/profile" : "/otp");
     setIsMenuOpen(false);
   };
 
@@ -232,7 +232,7 @@ const Header = () => {
                   src={
                     selectedUser.imagePreview
                       ? selectedUser.imagePreview
-                      : `http://localhost:3000/profilePicture/${selectedUser.image}`
+                      : `https://localhost:3000/profilePicture/${selectedUser.image}`
                   }
                   alt="User"
                   className="w-full h-full rounded-full object-cover"

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { BookOpen, ChevronRight, LogOut, Package, User } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { FaCircleUser } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
@@ -40,7 +41,7 @@ const Profile = () => {
       try {
         // Fetch user profile
         console.log(`Fetching user profile for userId: ${userId}`);
-        const userResponse = await axios.get(`http://localhost:3000/api/customer/${userId}`, {
+        const userResponse = await axios.get(`https://localhost:3000/api/customer/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("User response:", userResponse.data);
@@ -52,16 +53,17 @@ const Profile = () => {
           contact_no: userResponse.data.user?.contact_no || userResponse.data.contact_no || '',
           address: userResponse.data.user?.address || userResponse.data.address || '',
         });
+        // Set imagePreview to the profile image URL or null if no image
         setImagePreview(
           userResponse.data.user?.image || userResponse.data.image
-            ? `http://localhost:3000/profilePicture/${userResponse.data.user?.image || userResponse.data.image}`
-            : "/api/placeholder/150/150"
+            ? `https://localhost:3000/profilePicture/${userResponse.data.user?.image || userResponse.data.image}`
+            : null
         );
 
         // Fetch recent orders
         try {
           console.log(`Fetching orders for userId: ${userId}`);
-          const ordersResponse = await axios.get(`http://localhost:3000/api/orders/user/${userId}`, {
+          const ordersResponse = await axios.get(`https://localhost:3000/api/orders/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           console.log("Orders response:", ordersResponse.data);
@@ -74,7 +76,7 @@ const Profile = () => {
         // Fetch order counts
         try {
           console.log(`Fetching order counts for userId: ${userId}`);
-          const countsResponse = await axios.get(`http://localhost:3000/api/orders/counts/${userId}`, {
+          const countsResponse = await axios.get(`https://localhost:3000/api/orders/counts/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           console.log("Order counts response:", countsResponse.data);
@@ -87,7 +89,7 @@ const Profile = () => {
         // Fetch currently reading
         try {
           console.log(`Fetching currently reading for userId: ${userId}`);
-          const readingResponse = await axios.get(`http://localhost:3000/api/orders/currently-reading/${userId}`, {
+          const readingResponse = await axios.get(`https://localhost:3000/api/orders/currently-reading/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           console.log("Currently reading response:", readingResponse.data);
@@ -118,7 +120,7 @@ const Profile = () => {
   };
 
   const handleChangePassword = () => {
-    navigate('/password-reset');
+    navigate('/reset-password');
   };
 
   const handleInputChange = (e) => {
@@ -152,7 +154,7 @@ const Profile = () => {
     try {
       console.log(`Updating profile for userId: ${userId}`);
       const response = await axios.put(
-        `http://localhost:3000/api/customer/${userId}`,
+        `https://localhost:3000/api/customer/${userId}`,
         data,
         {
           headers: {
@@ -164,6 +166,12 @@ const Profile = () => {
       console.log("Profile updated:", response.data);
       setUser(response.data.customer || response.data.user || response.data);
       setImageFile(null);
+      // Update imagePreview after profile update
+      setImagePreview(
+        response.data.customer?.image || response.data.user?.image || response.data.image
+          ? `https://localhost:3000/profilePicture/${response.data.customer?.image || response.data.user?.image || response.data.image}`
+          : null
+      );
       setIsEditPopupOpen(false);
       alert("Profile updated successfully!");
     } catch (error) {
@@ -298,7 +306,7 @@ const Profile = () => {
                       <div className="mr-4">
                         {prop.image ? (
                           <img
-                            src={`http://localhost:3000/prop_images/${prop.image}`}
+                            src={`https://localhost:3000/prop_images/${prop.image}`}
                             alt={prop.name}
                             className="w-15 h-20 object-cover rounded"
                           />
@@ -343,11 +351,15 @@ const Profile = () => {
             {/* Profile Header */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-300">
               <div className="flex items-center">
-                <img
-                  src={user?.image ? `http://localhost:3000/profilePicture/${user.image}` : "/api/placeholder/150/150"}
-                  alt={user?.username || "User"}
-                  className="w-20 h-20 rounded-full object-cover"
-                />
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt={user?.username || "User"}
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                ) : (
+                  <FaCircleUser className="w-20 h-20 text-gray-400" />
+                )}
                 <div className="ml-4">
                   <h1 className="text-2xl font-bold">{user?.full_name || "Loading..."}</h1>
                   <p className="text-gray-600">{user?.email || "Loading..."}</p>
@@ -420,12 +432,19 @@ const Profile = () => {
             <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div className="flex justify-center mb-4">
-                <img
-                  src={imagePreview}
-                  alt="Profile Preview"
-                  className="w-24 h-24 rounded-full object-cover cursor-pointer"
-                  onClick={() => document.getElementById('imageInput').click()}
-                />
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Profile Preview"
+                    className="w-24 h-24 rounded-full object-cover cursor-pointer"
+                    onClick={() => document.getElementById('imageInput').click()}
+                  />
+                ) : (
+                  <FaCircleUser
+                    className="w-24 h-24 text-gray-400 cursor-pointer"
+                    onClick={() => document.getElementById('imageInput').click()}
+                  />
+                )}
                 <input
                   id="imageInput"
                   type="file"

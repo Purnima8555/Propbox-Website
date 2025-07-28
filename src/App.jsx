@@ -1,6 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import PaymentSuccess from "./components/PaymentSuccess";
+import PaymentSuccessBuyNow from "./components/PaymentSuccessBuyNow";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Admin from "./pages/admin/Admin";
 import Dashboard from "./pages/admin/Dashboard";
 import ManageProps from "./pages/admin/ManageProps";
@@ -10,21 +13,20 @@ import PropForm2 from "./pages/admin/PropForm2";
 import Requests from "./pages/admin/Requests";
 import UserForm from "./pages/admin/UserForm";
 import Users from "./pages/admin/Users";
+import LoginWithOtp from "./pages/auth/LoginOTP";
 import PasswordResetPage from "./pages/auth/PasswordResetPage";
 import SignInPage from "./pages/auth/SignInPage";
 import SignUpPage from "./pages/auth/SignUpPage";
+import BestSellersPage from "./pages/BestSeller";
+import BuyNow from "./pages/BuyNow";
+import CartPage from "./pages/CartPage";
 import CategoryPage from "./pages/CategoryPage";
 import DetailPage from "./pages/DetailPage";
 import FavoritesPage from "./pages/Favorite";
 import HomePage from "./pages/HomePage";
 import NewArrivalsPage from "./pages/NewArrival";
-import PropRequest from "./pages/PropRequest";
-import CartPage from "./pages/CartPage";
 import Profile from "./pages/Profile";
-import BestSellersPage from "./pages/BestSeller";
-import BuyNow from "./pages/BuyNow";
-import PaymentSuccess from "./components/PaymentSuccess";
-import PaymentSuccessBuyNow from "./components/PaymentSuccessBuyNow";
+import PropRequest from "./pages/PropRequest";
 
 const router = createBrowserRouter([
   {
@@ -34,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: "/signIn",
     element: <SignInPage />,
+  },
+  {
+    path: "/otp",
+    element: <LoginWithOtp />,
   },
   {
     path: "/signUp",
@@ -93,7 +99,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <Admin />,
+    element: (
+    <ProtectedRoute allowedRoles={["Admin"]}>
+      <Admin />
+    </ProtectedRoute>
+    ),
     children: [
       {
         path: "dashboard",

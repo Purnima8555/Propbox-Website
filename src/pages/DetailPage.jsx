@@ -35,7 +35,7 @@ const DetailPage = () => {
   useEffect(() => {
     const fetchProp = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/api/props/${id}`, {
+        const response = await axios.get(`https://localhost:3000/api/props/${id}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         console.log('Fetched prop data:', response.data);
@@ -43,7 +43,7 @@ const DetailPage = () => {
           id: response.data._id,
           name: response.data.name,
           image: response.data.image
-            ? `http://localhost:3000/prop_images/${response.data.image}`
+            ? `https://localhost:3000/prop_images/${response.data.image}`
             : '/default-prop-cover.jpg',
           category: Array.isArray(response.data.category) ? response.data.category : [],
           description: response.data.description || 'No description available',
@@ -73,7 +73,7 @@ const DetailPage = () => {
       const token = localStorage.getItem('token');
       if (userId && token && id) {
         try {
-          const response = await axios.get(`http://localhost:3000/api/favorites/${userId}`, {
+          const response = await axios.get(`https://localhost:3000/api/favorites/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const isPropFavorited = response.data.some(fav => fav.prop_id?._id === id && fav.isFavorite);
@@ -92,7 +92,7 @@ const DetailPage = () => {
     const userId = localStorage.getItem('userId');
     if (userId) {
       axios
-        .get(`http://localhost:3000/api/customer/${userId}`, {
+        .get(`https://localhost:3000/api/customer/${userId}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
         .then((response) => {
@@ -108,7 +108,7 @@ const DetailPage = () => {
   useEffect(() => {
     const fetchAverageRating = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/api/feedback/average-rating/${id}`);
+        const response = await axios.get(`https://localhost:3000/api/feedback/average-rating/${id}`);
         setAverageRating(response.data.averageRating || 0);
         setTotalReviews(response.data.totalReviews || 0);
       } catch (error) {
@@ -122,7 +122,7 @@ const DetailPage = () => {
   // Fetch reviews
   useEffect(() => {
     axios
-      .get(`http://localhost:3000/api/feedback/prop/${id}`)
+      .get(`https://localhost:3000/api/feedback/prop/${id}`)
       .then((response) => {
         setReviews(response.data || []);
       })
@@ -154,7 +154,7 @@ const DetailPage = () => {
     };
 
     axios
-      .post('http://localhost:3000/api/feedback', reviewData, {
+      .post('https://localhost:3000/api/feedback', reviewData, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(() => {
@@ -162,7 +162,7 @@ const DetailPage = () => {
         setRating(0);
         setReview('');
         // Refresh average rating and reviews
-        axios.get(`http://localhost:3000/api/feedback/average-rating/${id}`)
+        axios.get(`https://localhost:3000/api/feedback/average-rating/${id}`)
           .then((response) => {
             setAverageRating(response.data.averageRating || 0);
             setTotalReviews(response.data.totalReviews || 0);
@@ -170,7 +170,7 @@ const DetailPage = () => {
           .catch((error) => {
             console.error('Error fetching average rating:', error);
           });
-        axios.get(`http://localhost:3000/api/feedback/prop/${id}`)
+        axios.get(`https://localhost:3000/api/feedback/prop/${id}`)
           .then((response) => {
             setReviews(response.data || []);
           })
@@ -195,19 +195,19 @@ const DetailPage = () => {
     setIsLoadingFavorite(true);
     try {
       if (isFavorited) {
-        const favorites = await axios.get(`http://localhost:3000/api/favorites/${userId}`, {
+        const favorites = await axios.get(`https://localhost:3000/api/favorites/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const favoriteToRemove = favorites.data.find(fav => fav.prop_id?._id === id && fav.isFavorite);
         if (favoriteToRemove) {
-          await axios.delete(`http://localhost:3000/api/favorites/${favoriteToRemove._id}`, {
+          await axios.delete(`https://localhost:3000/api/favorites/${favoriteToRemove._id}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setIsFavorited(false);
         }
       } else {
         await axios.post(
-          'http://localhost:3000/api/favorites/',
+          'https://localhost:3000/api/favorites/',
           { user_id: userId, prop_id: id },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -239,7 +239,7 @@ const DetailPage = () => {
     };
 
     try {
-      const response = await axios.post('http://localhost:3000/api/cart/add', cartData, {
+      const response = await axios.post('https://localhost:3000/api/cart/add', cartData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('Cart response:', response.data);
@@ -489,13 +489,13 @@ const DetailPage = () => {
               <div className="flex gap-4">
                 <button
                   onClick={handleAddToCart}
-                  className="flex items-center gap-2 bg-[#1E2751] text-white px-6 py-3 rounded-lg hover:bg-[#0e1e67] transition"
+                  className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-lg"
                 >
                   <ShoppingCart /> Add to Cart
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  className="flex items-center gap-2 border border-[#1E2751] text-[#1E2751] font-bold px-6 py-3 rounded-lg hover:bg-[#E5E7F3] transition"
+                  className="flex items-center gap-2 border border-black text-black font-bold px-6 py-3 rounded-lg"
                 >
                   Buy Now <ArrowRight />
                 </button>
@@ -509,7 +509,7 @@ const DetailPage = () => {
           <div className="w-4/5 mx-auto">
             <div className="flex items-center gap-3 mb-4">
               <img
-                src={user?.image ? `http://localhost:3000/profilePicture/${user.image}` : '/default-profile.png'}
+                src={user?.image ? `https://localhost:3000/profilePicture/${user.image}` : '/default-profile.png'}
                 alt={'ProfilePic'}
                 className="w-12 h-12 rounded-full border border-gray-300"
               />
@@ -552,7 +552,7 @@ const DetailPage = () => {
               <div key={review._id} className="border-b border-gray-200 pb-8 last:border-b-0">
                 <div className="flex items-start">
                   <img
-                    src={review.image ? `http://localhost:3000/profilePicture/${review.image}` : '/default-profile.png'}
+                    src={review.image ? `https://localhost:3000/profilePicture/${review.image}` : '/default-profile.png'}
                     alt={getUserName(review)}
                     className="w-14 h-14 rounded-full mr-4"
                   />

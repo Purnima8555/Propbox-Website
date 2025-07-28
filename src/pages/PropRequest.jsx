@@ -1,16 +1,17 @@
-import React, { useState } from "react";
-import { CheckCircle, Clock, FileText, HelpCircle, Package, Send } from "lucide-react";
+import { Toaster, toast } from "react-hot-toast";
 import axios from "axios";
-import Header from "../components/Header.jsx";
+import { CheckCircle, Clock, FileText, HelpCircle, Package, Send } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer.jsx";
+import Header from "../components/Header.jsx";
 
 const PropRequest = () => {
   const [formData, setFormData] = useState({
-    name: "",
-    category: "",
+    prop_name: "",
     urgency: "normal",
     reason: "not-in-system",
-    additionalInfo: "",
+    additional_info: "",
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -18,13 +19,7 @@ const PropRequest = () => {
   const [requestId, setRequestId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const categories = [
-    "Costume",
-    "Accessory & Props",
-    "Makeup & Hair",
-    "Set & Stage Decor"
-  ];
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,11 +48,13 @@ const PropRequest = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:3000/api/prop-request",
+        "https://localhost:3000/api/prop-requests",
         {
-          ...formData,
-          userId,
-          category: [formData.category], // Send as array to match Prop schema
+          user_id: userId,
+          prop_name: formData.prop_name,
+          urgency: formData.urgency,
+          reason: formData.reason,
+          additional_info: formData.additional_info,
         },
         {
           headers: {
@@ -68,21 +65,28 @@ const PropRequest = () => {
 
       setRequestId(response.data.requestId);
       setIsSubmitted(true);
+      
+      toast.success("Request Sent Successfully! We'll notify you once it's processed.");
+      navigate("/");
 
       setTimeout(() => {
         setIsSubmitted(false);
         setCurrentStep(1);
         setRequestId(null);
         setFormData({
-          name: "",
-          category: "",
+          prop_name: "",
           urgency: "normal",
           reason: "not-in-system",
-          additionalInfo: "",
+          additional_info: "",
         });
       }, 5000);
     } catch (err) {
+      console.error("Error submitting prop request:", err.response || err);
       setError(err.response?.data?.message || err.message || "Error submitting request");
+      if (err.response?.status === 401) {
+        console.error("Unauthorized access. Redirecting to login.");
+        navigate("/otp");
+      }
     } finally {
       setLoading(false);
     }
@@ -93,7 +97,7 @@ const PropRequest = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-
+      <Toaster />
       <main className="flex-grow">
         {isSubmitted ? (
           <div className="max-w-2xl mx-auto p-8 bg-gradient-to-br from-white to-black/10 rounded-2xl shadow-xl my-6">
@@ -140,7 +144,6 @@ const PropRequest = () => {
               </div>
             </div>
 
-            {/* Progress Steps */}
             <div className="flex justify-between mb-8">
               <div className="flex items-center">
                 <div
@@ -183,7 +186,7 @@ const PropRequest = () => {
 
                   <div className="group">
                     <label
-                      htmlFor="name"
+                      htmlFor="prop_name"
                       className="block text-sm font-medium text-gray-700 mb-1 group-hover:text-black transition-colors"
                     >
                       Prop Name*
@@ -191,10 +194,10 @@ const PropRequest = () => {
                     <div className="relative">
                       <input
                         type="text"
-                        id="name"
-                        name="name"
+                        id="prop_name"
+                        name="prop_name"
                         required
-                        value={formData.name}
+                        value={formData.prop_name}
                         onChange={handleChange}
                         disabled={loading}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black pl-12 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
@@ -202,43 +205,6 @@ const PropRequest = () => {
                       />
                       <div className="absolute left-3 top-3 bg-black/10 p-1 rounded-md">
                         <Package className="h-5 w-5 text-black" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="group">
-                    <label
-                      htmlFor="category"
-                      className="block text-sm font-medium text-gray-700 mb-1 group-hover:text-black transition-colors"
-                    >
-                      Category*
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="category"
-                        name="category"
-                        required
-                        value={formData.category}
-                        onChange={handleChange}
-                        disabled={loading}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black pl-12 appearance-none transition-all shadow-sm hover:shadow-md disabled:opacity-50"
-                      >
-                        <option value="" disabled>Select a category</option>
-                        {categories.map((cat) => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                      <div className="absolute left-3 top-3 bg-black/10 p-1 rounded-md">
-                        <Package className="h-5 w-5 text-black" />
-                      </div>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg
-                          className="fill-current h-4 w-4"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                        </svg>
                       </div>
                     </div>
                   </div>
@@ -406,16 +372,16 @@ const PropRequest = () => {
 
                   <div className="group">
                     <label
-                      htmlFor="additionalInfo"
+                      htmlFor="additional_info"
                       className="block text-sm font-medium text-gray-700 mb-1 group-hover:text-black transition-colors"
                     >
                       Additional Information
                     </label>
                     <textarea
-                      id="additionalInfo"
-                      name="additionalInfo"
+                      id="additional_info"
+                      name="additional_info"
                       rows="4"
-                      value={formData.additionalInfo}
+                      value={formData.additional_info}
                       onChange={handleChange}
                       disabled={loading}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black transition-all shadow-sm hover:shadow-md disabled:opacity-50"
@@ -465,7 +431,6 @@ const PropRequest = () => {
           </div>
         )}
       </main>
-
       <Footer />
     </div>
   );

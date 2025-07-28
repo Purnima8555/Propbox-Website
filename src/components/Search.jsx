@@ -63,12 +63,12 @@ const SearchPopup = ({ onClose }) => {
       try {
         if (searchType === 'name') {
           const response = await axios.get(
-            `http://localhost:3000/api/props/search?name=${encodeURIComponent(debouncedQuery)}`
+            `https://localhost:3000/api/props/search?name=${encodeURIComponent(debouncedQuery)}`
           );
           setResults(response.data);
         } else {
           // For category search, fetch all props and filter client-side
-          const response = await axios.get(`http://localhost:3000/api/props/`);
+          const response = await axios.get(`https://localhost:3000/api/props/`);
           const filteredProps = response.data.filter(prop =>
             prop.category.some(cat =>
               cat.toLowerCase().includes(debouncedQuery.toLowerCase())
@@ -149,7 +149,7 @@ const SearchPopup = ({ onClose }) => {
                   <img
                     src={
                       prop.image
-                        ? `http://localhost:3000/prop_images/${prop.image}`
+                        ? `https://localhost:3000/prop_images/${prop.image}`
                         : "/default-prop-image.jpg"
                     }
                     alt={prop.name}

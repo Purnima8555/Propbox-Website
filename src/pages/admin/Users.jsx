@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
 import { FaRegIdCard, FaTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -11,15 +11,30 @@ const Users = () => {
 
   // Fetch data
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No authentication token found. Redirecting to login.");
+      navigate("/otp");
+      return;
+    }
+
     axios
-      .get("http://localhost:3000/api/customer")
+      .get("https://localhost:3000/api/customer", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((response) => {
         setUsers(response.data);
       })
       .catch((error) => {
         console.error("There was an error fetching the user data!", error);
+        if (error.response?.status === 401) {
+          console.error("Unauthorized access. Redirecting to login.");
+          navigate("/otp");
+        }
       });
-  }, []);
+  }, [navigate]);
 
   // Function to handle deleting a user by ID
   const handleDelete = async (userId) => {
@@ -39,7 +54,7 @@ const Users = () => {
         throw new Error("No authentication token found. Please log in.");
       }
 
-      const response = await axios.delete(`http://localhost:3000/api/customer/${userId}`, {
+      const response = await axios.delete(`https://localhost:3000/api/customer/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -56,14 +71,29 @@ const Users = () => {
 
   // Function to handle viewing a user by ID
   const handleView = (userId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No authentication token found. Redirecting to login.");
+      navigate("/otp");
+      return;
+    }
+
     axios
-      .get(`http://localhost:3000/api/customer/${userId}`)
+      .get(`https://localhost:3000/api/customer/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((response) => {
         setSelectedUser(response.data);
         setShowForm(true);
       })
       .catch((error) => {
         console.error("There was an error fetching the user details!", error);
+        if (error.response?.status === 401) {
+          console.error("Unauthorized access. Redirecting to login.");
+          navigate("/otp");
+        }
       });
   };
 
@@ -146,7 +176,7 @@ const Users = () => {
                   src={
                     selectedUser.imagePreview
                       ? selectedUser.imagePreview
-                      : `http://localhost:3000/profilePicture/${selectedUser.image}`
+                      : `https://localhost:3000/profilePicture/${selectedUser.image}`
                   }
                   alt="User"
                   className="w-24 h-24 object-cover border-2 border-gray-300"

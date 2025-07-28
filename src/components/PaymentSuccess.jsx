@@ -23,14 +23,14 @@ const PaymentSuccessPage = () => {
 
       try {
         // Verify payment session
-        const sessionRes = await axios.get(`http://localhost:3000/api/payments/session/${sessionId}`, {
+        const sessionRes = await axios.get(`https://localhost:3000/api/payments/session/${sessionId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const paymentIntentId = sessionRes.data.payment_intent;
 
         // Check if order already exists
-        const existingOrderRes = await axios.get(`http://localhost:3000/api/orders/check/${paymentIntentId}`, {
+        const existingOrderRes = await axios.get(`https://localhost:3000/api/orders/check/${paymentIntentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -42,7 +42,7 @@ const PaymentSuccessPage = () => {
         }
 
         // Fetch cart items
-        const cartResponse = await axios.get(`http://localhost:3000/api/cart/${userId}`, {
+        const cartResponse = await axios.get(`https://localhost:3000/api/cart/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -66,12 +66,12 @@ const PaymentSuccessPage = () => {
         };
 
         // Place order
-        const response = await axios.post("http://localhost:3000/api/orders", orderData, {
+        const response = await axios.post("https://localhost:3000/api/orders", orderData, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         // clear cart
-        await axios.delete(`http://localhost:3000/api/cart/clear/${userId}`, {
+        await axios.delete(`https://localhost:3000/api/cart/clear/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

@@ -16,7 +16,7 @@ const PropCard = ({ name, rental_price, image, category, altText, onClick }) => 
     >
       <div className="relative">
         <img
-          src={image ? `http://localhost:3000/prop_images/${image}` : "/default-prop-image.jpg"}
+          src={image ? `https://localhost:3000/prop_images/${image}` : "/default-prop-image.jpg"}
           alt={altText || `${name} image`}
           className="w-full h-64 object-cover rounded-t-lg transition-transform duration-200"
         />

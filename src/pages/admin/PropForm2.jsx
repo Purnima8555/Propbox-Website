@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Select from 'react-select';
@@ -26,7 +26,7 @@ const PropForm2 = () => {
       return;
     }
 
-    axios.get(`http://localhost:3000/api/props/${id}`, {
+    axios.get(`https://localhost:3000/api/props/${id}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
@@ -57,7 +57,7 @@ const PropForm2 = () => {
 
     const formData = new FormData();
     formData.append("name", prop.name);
-    formData.append("category", JSON.stringify(prop.category));
+    formData.append("category", prop.category.join(","));
     formData.append("description", prop.description);
     formData.append("purchase_price", prop.purchase_price);
     formData.append("rental_price", prop.rental_price);
@@ -74,7 +74,7 @@ const PropForm2 = () => {
     }
 
     try {
-      const response = await axios.put(`http://localhost:3000/api/props/update/${id}`, formData, {
+      const response = await axios.put(`https://localhost:3000/api/props/update/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           "Authorization": `Bearer ${localStorage.getItem('token')}`
@@ -145,7 +145,7 @@ const PropForm2 = () => {
               <div className="w-48 h-64 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
                 {imagePreview || prop.image ? (
                   <img
-                    src={imagePreview ? imagePreview : `http://localhost:3000/prop_images/${prop.image}`}
+                    src={imagePreview ? imagePreview : `https://localhost:3000/prop_images/${prop.image}`}
                     alt="Prop Image"
                     className="w-full h-full object-cover"
                   />

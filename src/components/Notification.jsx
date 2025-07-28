@@ -16,7 +16,7 @@ const Notification = ({ onClose, onUnreadChange }) => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:3000/api/notifications/user/${userId}`, {
+        const response = await axios.get(`https://localhost:3000/api/notifications/user/${userId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -45,7 +45,7 @@ const Notification = ({ onClose, onUnreadChange }) => {
       }
 
       await axios.patch(
-        `http://localhost:3000/api/notifications/${notificationId}`,
+        `https://localhost:3000/api/notifications/${notificationId}`,
         {},
         {
           headers: {

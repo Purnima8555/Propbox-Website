@@ -16,7 +16,7 @@ const NewArrivalsPage = () => {
   useEffect(() => {
     const fetchProps = async () => {
       try {
-        const propsResponse = await axios.get("http://localhost:3000/api/props/new");
+        const propsResponse = await axios.get("https://localhost:3000/api/props/new");
         const props = propsResponse.data;
         setNewProps(props);
         return props;
@@ -35,7 +35,7 @@ const NewArrivalsPage = () => {
 
       try {
         const favResponse = await axios.get(
-          `http://localhost:3000/api/favorites/${userId}`,
+          `https://localhost:3000/api/favorites/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -78,7 +78,7 @@ const NewArrivalsPage = () => {
     try {
       if (isCurrentlyFavorited) {
         const response = await axios.get(
-          `http://localhost:3000/api/favorites/${userId}`,
+          `https://localhost:3000/api/favorites/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -89,7 +89,7 @@ const NewArrivalsPage = () => {
 
         if (favoriteToRemove) {
           await axios.delete(
-            `http://localhost:3000/api/favorites/${favoriteToRemove._id}`,
+            `https://localhost:3000/api/favorites/${favoriteToRemove._id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -98,7 +98,7 @@ const NewArrivalsPage = () => {
         }
       } else {
         await axios.post(
-          "http://localhost:3000/api/favorites/",
+          "https://localhost:3000/api/favorites/",
           {
             user_id: userId,
             prop_id: propId, // Note: Should be prop_id
@@ -166,7 +166,7 @@ const NewArrivalsPage = () => {
                     <img
                       src={
                         prop.image
-                          ? `http://localhost:3000/prop_images/${prop.image}`
+                          ? `https://localhost:3000/prop_images/${prop.image}`
                           : "/default-prop-image.jpg"
                       }
                       alt={prop.name}
